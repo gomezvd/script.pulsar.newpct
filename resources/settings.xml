@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 
 <settings>
-  <setting label="URL/Proxy" type="text" id="url_proxy" default="https://kickass.to/"/>
+  <setting label="URL/Proxy" type="text" id="url_proxy" default="http://www.newpct.com/"/>
   <setting label="Language" type="labelenum" id="idioma_xml" values="es" default="es"/>
   <setting type="sep"/>
   <setting label="____________Quality Movies____________ " type="lsep"/>
