@@ -143,8 +143,8 @@ def search_movie(movie):
         
 def lectura_pagina(urltarget, tipo, nombre, season, episodio, name):   
     urltarget = urltarget.replace(' ', "%20")   
-    provider.log.info("Victor: " + urltarget.encode('utf-8'))
-    u = urllib2.urlopen(urltarget.encode('utf-8'))
+    provider.log.info("Victor: " + urltarget)
+    u = urllib2.urlopen(urltarget)
     try:
         resp = u.read()
  #       provider.log.info("Contenido pagina: " + resp)
@@ -177,7 +177,7 @@ def lectura_pagina(urltarget, tipo, nombre, season, episodio, name):
                  results.append({"uri": torrent.group(0)})
                  provider.log.info("Found torrent: " + torrent.group(0))
           else:
-             provider.log.info("tipo: " + tipo + nombre) 
+    #         provider.log.info("tipo: " + tipo + nombre) 
              nombre = nombre
              nombre = nombre.replace('"', "")
              nombre = nombre.replace('/', "")
@@ -186,13 +186,9 @@ def lectura_pagina(urltarget, tipo, nombre, season, episodio, name):
              titulo = ptitulo.search(section)
              titulo2 = ptitulo2.search(section)
              if (titulo != None) or (titulo2 != None): 
-                provider.log.info("Detectado titulo: " + nombre)
-       #      nombre = nombre.decode('utf-8')
-       #      trozo = section.decode('utf-8') 
-       #      if nombre.lower() in trozo.lower():    
+       #         provider.log.info("Detectado titulo: " + nombre)
                 results.append({"uri": torrent.group(0)})
                 provider.log.info("Found torrent: " + torrent.group(0))
-     #     titulo = ptitulo.search(section)
          # provider.log.info("Found torrent: " + titulo)
      else:
           provider.log.info("Found magnet: " + magnet.group(0))
