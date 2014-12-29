@@ -26,6 +26,7 @@ use_screener = __addon__.getSetting("use_screener")
 use_3D = __addon__.getSetting("use_3D")
 only_HD = __addon__.getSetting("only_HD")
 IDIOMA = __idioma__
+
 HEADERS = {
     "Referer": BASE_URL,
 }
@@ -45,6 +46,10 @@ def search_episode(episode):
     name = episode.get("title")  
     season = episode.get("season")  
     episodio = episode.get("episode") 
+    provider.log.info("cont: %s "  % episode)
+    provider.log.info("name: " + name)
+    provider.log.info("season: %s"  %season)
+    provider.log.info("season: %s"  %episodio)
     temporada = season
     capt = episodio
     url_pelicula = "http://api.themoviedb.org/3/find/%s?api_key=57983e31fb435df4df77afb854740ea9&language=%s&external_source=imdb_id" % (imdb_id, IDIOMA)
@@ -54,6 +59,8 @@ def search_episode(episode):
     texto3 = texto2[0]
 
     nombre = texto3.get("name")
+    nombre_serie = nombre
+    
     if nombre == "24" and season == 9 and IDIOMA == 'es':
                  nombre = u"24 vive otro dia"
                  name = u"24 live other day"
@@ -80,13 +87,21 @@ def search_episode(episode):
 
     capitulo = "%s%dX%02d%s%d%02d%s" % (" (",season, episodio, " OR ", season, episodio, " )")
  #   busqueda_completa =  nombre + capitulo + "/"
+   #----Calidad ------------------------------------      
+    if only_HD == "true": 
+             calidad = '1469' 
+    else: 
+             calidad = 'All'
+                           
+            
+  #----------------------------------------------------------   
     busqueda_completa =  nombre
-    pagina_busqueda = __proxy__ + 'buscar-descargas/cID=0&tLang=0&oBy=0&oMode=0&category_=1469&subcategory_=All&idioma_=1&calidad_=All&oByAux=0&oModeAux=0&size_=0&q='
+    pagina_busqueda = __proxy__ + 'buscar-descargas/cID=0&tLang=0&oBy=0&oMode=0&category_=%s&subcategory_=All&idioma_=1&calidad_=All&oByAux=0&oModeAux=0&size_=0&q=' % (calidad)
     ttt = pagina_busqueda + busqueda_completa
-    lectura_pagina(ttt, tipo, nombre, season, episodio, name)
+    lectura_pagina(ttt, tipo, nombre, season, episodio, name, nombre_serie)
   #  resp = provider.GET(pagina_busqueda, params={"q": busqueda_completa.encode('utf-8'),})
   #  return provider.extract_magnets(resp.data)
-        
+ #   provider.log.info("Victor retorna: %s"  %results)      
     return results
 
 
@@ -135,13 +150,14 @@ def search_movie(movie):
     busqueda_completa = busqueda_completa.encode('utf-8')
     
     ttt = pagina_busqueda + busqueda_completa
-    lectura_pagina(ttt, tipo, nombre, 0, 0, name)
+    lectura_pagina(ttt, tipo, nombre, 0, 0, name, "")
+#    provider.log.info("Victor retorna: %s"  %results)  
     return results
 #    return provider.extract_magnets(resp.data)
 
 
         
-def lectura_pagina(urltarget, tipo, nombre, season, episodio, name):   
+def lectura_pagina(urltarget, tipo, nombre, season, episodio, name, nombre_serie):   
     urltarget = urltarget.replace(' ', "%20")   
     provider.log.info("Victor: " + urltarget)
     u = urllib2.urlopen(urltarget)
@@ -157,7 +173,8 @@ def lectura_pagina(urltarget, tipo, nombre, season, episodio, name):
 
     pmagnet = re.compile(r'magnet:\?[^\'"\s<>\[\]]+')
     ptorrent = re.compile(r'http[s]?://.*\.torrent')
-    
+    ptitulo = re.compile(r'title="*]"')
+
     sections = (resp.split("<td"))
 
  
@@ -168,14 +185,29 @@ def lectura_pagina(urltarget, tipo, nombre, season, episodio, name):
      if magnet == None:
        torrent = ptorrent.search(section)
        if torrent != None:
-          provider.log.info("Contenido pagina: " + section) 
+    #      provider.log.info("Contenido pagina: " + section) 
           if tipo == "serie":
              capitulo1 = "%dX%02d" % (season, episodio)     
              capitulo2 = "%d%02d" % (season, episodio) 
-             provider.log.info("Contenido pagina: " + capitulo2)   
+             capitulo3 = "S%02dE%02d" % (season, episodio) 
+    #         provider.log.info("Contenido pagina: " + capitulo2)   
              if (capitulo1 in section) or (capitulo2 in section):
-                 results.append({"uri": torrent.group(0)})
-                 provider.log.info("Found torrent: " + torrent.group(0))
+    #         if (section.find(capitulo2) < 0):
+    #             provider.log.info("No encuentra: " + capitulo2)  
+    #         if ( section.find(capitulo1) > 0) or (section.find(capitulo2) > 0):
+                 if ( section.find("1080") > 0) :
+                    prub1 = 3
+                    prub2 = "1080p"
+                 elif ( section.find("720") > 0) :  
+                    prub1 = 2 
+                    prub2 = "720p"
+                 else :
+                    prub1 = 1 
+                    prub2 = "HDTV"   
+                  
+    #             provider.log.info("Contenido pagina: %s" %prub1)
+                 results.append({"name": nombre_serie + " " + capitulo3 + " " + prub2 + "- Newpct Provaider" , "uri": torrent.group(0) , "resolution" : prub1})
+    #             provider.log.info("Victor Found torrent: " + torrent.group(0))
           else:
     #         provider.log.info("tipo: " + tipo + nombre) 
              nombre = nombre
